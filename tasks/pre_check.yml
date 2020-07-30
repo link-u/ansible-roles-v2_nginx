@@ -1,0 +1,20 @@
+---
+# tasks/pre_check.yml (nginx)
+# Prefix : nginx
+
+- name: Check for deleted variables
+  shell: >-
+    echo "[WARNING]: 以下の変数は削除されました. 以下の URL を確認してください. @y_hashida";
+    echo "    https://github.com/link-u/ansible-roles-v2_nginx/blob/master/README.md#削除された変数の一覧";
+    {% if nginx_ports is defined %}
+      echo "nginx_ports";
+    {% endif %}
+
+    {% if no_firewall is defined %}
+      echo "no_firewall";
+    {% endif %}
+  register: __nginx_check_deleted_vars
+  check_mode: no
+  changed_when:
+    - (__nginx_check_deleted_vars.stdout_lines | length) != 2
+  notify: "Print warning for nginx (Check for deleted variables)"

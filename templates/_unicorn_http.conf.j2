@@ -1,0 +1,4 @@
+upstream  unicorn-{{ (vhost.conf_file_name | splitext)[0] }} {
+  server {{ vhost.unicorn_sock }};
+}
+

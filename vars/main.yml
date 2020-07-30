@@ -1,0 +1,77 @@
+---
+# vars/main.yml (nginx)
+# Prefix : nginx
+
+### Virtual host に関する設定 ######################################################################
+## Virtual host の基本構成
+nginx_vhost_base_settings:
+  conf_file_name: localhost.conf
+  listen_list: ['80']         # if default_server, set like '80 default_server'
+  root: off                   # default path is '/' when used
+  server_name: localhost
+  index: "index.php index.html"
+  access_log: off             # default path is '/var/log/nginx/{{ vhost.server_name }}-access.log' when used
+  error_log: off              # default path is '/var/log/nginx/{{ vhost.server_name }}-error.log' when used
+  log_not_found: off
+  error_pages: []             # set like ["404    /404.html", "500 502 503 504   /50x.html"]
+  ssl: off                    # define item.ssl as dictionary when non-default settings are used
+  unicorn_sock: off           # set socket file path when used. don't set 'on'
+  ip_restriction: off         # use item.ip_restriction.white_list when list other than nginx_default_ip_white_list is used
+  auth_basic_user: off        # 'on' or 'true' is invalid value. set dictionary when used
+### sample value for auth_basic_user
+#  htpasswd_path: /path/to/htpasswd_file # default path is '/etc/nginx/.htpasswd' when undefined
+#  accounts:
+#    - name: sample-user1
+#      password: pass1
+#    - name: sample-user2
+#      password: pass2
+  proxies: []                 # define item.proxy as dictionary when non-default settings are used
+  locations:
+    - location: "/"
+      value: |
+        root   /var/www/html;
+        index  index.html;
+  extra_parameters_str: ""    # extra_parameters_str will be printed in http directive as such with 8-space indent
+
+
+### proxy に関する設定 #############################################################################
+## proxy_cache_path の親ディレクトリ (行末は '/' で終わる必要がある)
+nginx_proxy_cache_dir: /var/cache/nginx/proxy_temp/ # end with '/'
+
+# shared proxy cache settings base for all vhosts
+nginx_proxy_cache_base_settings:
+  proxy_temp_path: /var/tmp/nginx
+  proxy_cache_lock: "on"
+
+# shared proxy cache settings actually used for all vhosts
+nginx_proxy_cache_fixed_settings: "{{ nginx_proxy_cache_base_settings | combine({} if nginx_proxy_cache == true or nginx_proxy_cache == false else nginx_proxy_cache) }}"
+
+# proxy settings for each vhost
+nginx_vhost_base_settings_for_proxy:
+  upstream_name: proxy1
+  backend: localhost
+  cache_name: proxy1
+  keys_zone_cache_size: 20m
+  cache_max_size: 15g
+  cache_inactive: 24h
+  cache_valid_time: 1m
+  location: no
+
+
+### SSL 設定 (各 Virtual host) #####################################################################
+nginx_vhost_base_settings_for_ssl:
+  listen_list: [ '443 ssl http2' ]
+  #src_dir_name: item.conf_file_name will be used when undefined
+  dest_dir: "/etc/nginx/ssl/" # end with '/'
+  certificate_file: coressl.crt
+  certificate_key_file: server.key
+  dhparam_file: dhparam2048.pem
+  session_timeout: 1h
+  buffer_size: 4k
+  ssl_protocols: TLSv1 TLSv1.1 TLSv1.2 TLSv1.3
+  ciphers: "TLS-CHACHA20-POLY1305-SHA256 TLS-AES-256-GCM-SHA384 TLS-AES-128-GCM-SHA256 kEECDH+ECDSA+AES128 kEECDH+ECDSA+AES256 kEECDH+AES128 kEECDH+AES256 kEDH+AES128 kEDH+AES256 DES-CBC3-SHA +SHA !aNULL !eNULL !LOW !kECDH !DSS !MD5 !EXP !PSK !SRP !CAMELLIA !SEED"
+  ecdh_curve: off
+  session_cache: shared:SSL:100m
+  put_ssl_keys: yes
+  ocsp_stapling: off
+  http_redirect: on

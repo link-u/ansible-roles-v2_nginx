@@ -1,0 +1,95 @@
+---
+# tasks/configure.yml (nginx)
+# Prefix : nginx
+
+- name: Create proxy cache dir
+  file:
+    path: "{{ nginx_proxy_cache_dir ~ (item.cache_name | default('proxy1')) }}"
+    state: directory
+    owner: "{{ nginx_user_name }}"
+    group: "{{ nginx_user_name }}"
+    mode: "0700"
+  when:
+    - item | default(False)
+  loop: "{{ nginx_vhosts | rejectattr('proxies', 'undefined') | map(attribute='proxies') | list }}"
+
+- name: Ensure conf.d is present
+  file:
+    path: /etc/nginx/conf.d/
+    state: directory
+
+- name: Ensure extra directories are present
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop: "{{ nginx_extra_directories }}"
+
+- name: Set nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Set virtual_host config
+  template:
+    src: virtual.conf.j2
+    dest: /etc/nginx/conf.d/{{ item.conf_file_name }}
+    mode: "0644"
+    backup: "{{ nginx_virtual_host_config_backup }}"
+  loop: "{{ nginx_vhosts }}"
+  notify: Reload nginx
+  tags: vhost
+
+- name: Check virtual_host config files
+  shell: ls -v /etc/nginx/conf.d | grep -E '.conf$'
+  register: _nginx_conf_files
+  changed_when: False
+  check_mode: no
+  tags: vhost
+
+- name: Remove undefined virtual_host config
+  file:
+    path: "/etc/nginx/conf.d/{{ item }}"
+    state: absent
+  when:
+    - nginx_remove_undefined_vhost_conf
+    - item not in (nginx_vhosts | map(attribute='conf_file_name'))
+  loop: "{{ _nginx_conf_files.stdout_lines }}"
+  notify: Reload nginx
+  tags: vhost
+
+## FIXME(@y_hashida: auth_basic_user: off を明示的に指定した場合エラーを出力)
+- name: Put htpasswd file
+  htpasswd:
+    path: "{{ item[0].auth_basic_user.htpasswd_path | default('/etc/nginx/.htpasswd') }}"
+    name: "{{ item[1].name }}"
+    password: "{{ item[1].password }}"
+  when:
+    - item[0].auth_basic_user
+  loop: "{{ nginx_vhosts | subelements('auth_basic_user.accounts', skip_missing=True) }}"
+  notify: Reload nginx
+
+- name: Put ssl keys
+  copy:
+    src: "{{ nginx_ssl_src_base_dir }}/{{ item.ssl.src_dir_name | default(item.conf_file_name) }}/"
+    dest: "{{ item.ssl.dest_dir | default('/etc/nginx/ssl/') }}"
+  when:
+    - item.ssl | default(false)
+    - item.ssl.put_ssl_keys | default(true)
+  loop: "{{ nginx_vhosts }}"
+  notify: Reload nginx
+  tags: put_ssl
+
+- name: Check nginx conf file syntax
+  command: "nginx -t"
+  register: _check_nginx_syntax
+  changed_when: false
+  check_mode: no
+  failed_when: "'test failed' in _check_nginx_syntax.stderr"
+
+- name: Ensure nginx is started
+  systemd:
+    name: nginx.service
+    enabled: yes
+    state: started

@@ -1,0 +1,9 @@
+{% set vhost_proxy = nginx_vhost_base_settings_for_proxy | combine({} if proxy == true else proxy) %}
+
+{% if vhost_proxy.location %}
+    location {{ vhost_proxy.location }} {
+        proxy_pass http://{{ vhost_proxy.upstream_name }};
+        proxy_cache {{ vhost_proxy.cache_name }};
+        proxy_cache_valid any {{ vhost_proxy.cache_valid_time }};
+    }
+{% endif %}

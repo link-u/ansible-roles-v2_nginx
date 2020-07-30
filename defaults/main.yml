@@ -1,0 +1,44 @@
+---
+# defaults/main.yml (nginx)
+# Prefix : nginx
+
+### インストール設定 ###############################################################################
+## 基本設定
+nginx_install_flag: True                  # インストールフラグ
+nginx_version: "latest"
+nginx_log_directory: /var/log/nginx
+nginx_access_log: "{{ nginx_log_directory }}/access.log"
+nginx_error_log: "{{ nginx_log_directory }}/error.log"
+nginx_extra_directories: []
+nginx_error_log_level: warn
+
+
+### conf ファイル 設定 #############################################################################
+nginx_user_name: "www-data"
+nginx_worker_processes: >-                # min(コア数の半分, 16)
+  {{ [([ansible_processor_cores * ansible_processor_count / 2, 1] | max) , 16] | min | round | int }}
+nginx_worker_rlimit_nofile: 1000000
+nginx_charset: "UTF-8"
+nginx_sendfile: "on"                      # String
+nginx_tcp_nopush: "on"                    # String
+nginx_tcp_nodelay: "on"                   # String
+nginx_keepalive_timeout: "300"
+nginx_keepalive_requests: "10000"
+nginx_open_file_cache: "max=10000"
+nginx_client_max_body_size: "64m"
+nginx_proxy_cache: off
+nginx_ssl_src_base_dir: >-                # ansible実行側での証明書等の保存場所
+  {{ inventory_dir }}/files/nginx/ssl
+nginx_extra_configs: ""                   # nginx.conf に設定を直書きするための変数
+
+## http ディレクティブを String で直接記述
+## ※インデントは 4-space
+nginx_extra_http_parameters_str: ""
+
+## Virtual host の conf ファイルに対する設定
+nginx_remove_undefined_vhost_conf: False  # 未定義の conf ファイルを削除するフラグ
+nginx_virtual_host_config_backup: no      # on or off : conf ファイルを変更したときに conf ファイルを残すフラグ
+nginx_default_ip_white_list:              # nginx にアクセスできるデフォルト IP アドレスホワイトリスト
+  - "127.0.0.1"
+## Virtual host を設定する変数
+nginx_vhosts: []                          # 初期値は空の配列

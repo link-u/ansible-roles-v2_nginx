@@ -1,0 +1,23 @@
+---
+# handlers/main.yml (nginx)
+# Prefix : nginx
+
+- name: Restart nginx
+  systemd:
+    name: nginx.service
+    state: restarted
+    enabled: yes
+  become: yes
+
+- name: Reload nginx
+  systemd:
+    name: nginx.service
+    state: reloaded
+    enabled: yes
+  become: yes
+
+- name: "Print warning for nginx (Check for deleted variables)"
+  debug:
+    msg: "{{ __nginx_check_deleted_vars.stdout_lines }}"
+  failed_when: yes
+  ignore_errors: yes

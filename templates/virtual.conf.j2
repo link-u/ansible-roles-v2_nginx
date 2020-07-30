@@ -1,0 +1,70 @@
+{% set vhost = nginx_vhost_base_settings | combine(item) %}
+{% if nginx_proxy_cache %}
+    {% for proxy in vhost.proxies %}
+        {% include "templates/_proxy_http.conf.j2" %}
+    {% endfor %}
+{% endif %}
+{% include "templates/_unicorn_http.conf.j2" if vhost.unicorn_sock else "templates/_blank.j2" %}
+
+{% if vhost.ssl %}
+{% set vhost_ssl = nginx_vhost_base_settings_for_ssl | combine({} if vhost.ssl == true else vhost.ssl) %}
+{% if vhost_ssl.http_redirect %}
+server {
+    listen       80;
+    server_name {{ vhost.server_name }};
+
+    return 301 https://$host$request_uri;
+}
+{% endif %}
+{% endif %}
+
+server {
+
+{% for listen in vhost.listen_list %}
+    listen       {{ listen }};
+{% endfor %}
+
+{% if vhost.root %}
+    root         {{ '/' if vhost.root == true else vhost.root }};
+
+{% endif %}
+    server_name  {{ vhost.server_name }};
+    index        {{ vhost.index }};
+
+{% if vhost.access_log %}
+    access_log   {{ '/var/log/nginx/' ~ vhost.server_name ~ '-access.log' if vhost.access_log == true else vhost.access_log }};
+{% endif %}
+{% if vhost.error_log %}
+    error_log   {{ '/var/log/nginx/' ~ vhost.server_name ~ '-error.log' if vhost.error_log == true else vhost.error_log }};
+{% endif %}
+    log_not_found {{ vhost.log_not_found | ternary('on', 'off') }};
+
+{% for error_page_path in vhost.error_pages %}
+    error_page   {{ error_page_path }};
+{% endfor %}
+
+{% include "templates/_ssl.conf.j2" if vhost.ssl else "templates/_blank.j2" %}
+{% include "templates/_ip_restriction.conf.j2" if vhost.ip_restriction else "templates/_blank.j2" %}
+{% if vhost.auth_basic_user %}
+    # Basic Auth
+    auth_basic "Restricted";
+    auth_basic_user_file {{ vhost.auth_basic_user.htpasswd_path | default('/etc/nginx/.htpasswd') }};
+{% endif %}
+
+{% if nginx_proxy_cache %}
+    {% for proxy in vhost.proxies %}
+        {% include "templates/_proxy_server.conf.j2" %}
+    {% endfor %}
+{% endif %}
+{% include "templates/_unicorn_server.conf.j2" if vhost.unicorn_sock else "templates/_blank.j2" %}
+
+
+{% for location_setting in vhost.locations %}
+
+    location {{ location_setting.location }} {
+        {{ location_setting.value | indent(8) }}
+    }
+{% endfor %}
+
+    {{ vhost.extra_parameters_str | indent(4) if vhost.extra_parameters_str else "" }}
+}
