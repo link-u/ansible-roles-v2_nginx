@@ -251,9 +251,9 @@
     fastcgi_buffer_size 256k;
     map $http_origin $cors {
         default "NG";
-        "https://hogehoge.com" "OK";
-        "https://foofoo.com" "OK";
-        "https://barbar.com" "OK";
+        "https://hoge.example.com" "OK";
+        "https://foo.example.com" "OK";
+        "https://bar.example.com" "OK";
     }
   ```
 <br>

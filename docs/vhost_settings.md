@@ -83,17 +83,17 @@
   ```yaml
   _vhost_01:
     conf_file_name: web.conf
-    server_name: web.hogehoge.com
+    server_name: web.example.com
     index: "index.html index.php"
 
   _vhost_02:
     conf_file_name: api.conf
-    server_name: api.hogehoge.com
+    server_name: api.example.com
     index: "index.html index.php"
 
   _vhost_03:
     conf_file_name: cms.conf
-    server_name: cms.hogehoge.com
+    server_name: cms.example.com
     index: "index.html index.php"
 
   nginx_vhosts:
@@ -213,7 +213,7 @@
 
 - 設定例 
   ```yaml
-  server_name: hogehoge.com
+  server_name: example.com
   ```
 <br>
 
@@ -307,8 +307,8 @@
 - `nginx_vhost_base_settings_for_ssl` 形式の場合の設定例
   ```yaml
   ssl:
-    src_dir_name: "_hogehoge.com"
-    dest_dir: "/etc/nginx/ssl/_hogehoge.com/"
+    src_dir_name: "_example.com"
+    dest_dir: "/etc/nginx/ssl/_example.com/"
     certificate_file: "coressl.crt"
     certificate_key_file: "server.key"
     dhparam_file: "dhparam2048.pem"

@@ -101,9 +101,9 @@ nginx_extra_http_parameters_str: ""
 #   fastcgi_buffer_size 256k;
 #   map $http_origin $cors {
 #       default "NG";
-#       "https://hogehoge.com" "OK";
-#       "https://foofoo.com" "OK";
-#       "https://barbar.com" "OK";
+#       "https://hoge.example.com" "OK";
+#       "https://foo.example.com" "OK";
+#       "https://bar.example.com" "OK";
 #   }
 
 ## Virtual host の conf ファイルに対する設定
@@ -118,17 +118,17 @@ nginx_vhosts: []                          # 初期値は空の配列
 # 1. まずはとてもシンプルな設定例
 # _vhost_web:
 #   conf_file_name: web.conf
-#   server_name: web.hogehoge.com
+#   server_name: web.example.com
 #   index: "index.html index.php"
 # 
 # _vhost_api:
 #   conf_file_name: api.conf
-#   server_name: api.hogehoge.com
+#   server_name: api.example.com
 #   index: "index.html index.php"
 # 
 # _vhost_cms:
 #   conf_file_name: cms.conf
-#   server_name: cms.hogehoge.com
+#   server_name: cms.example.com
 #   index: "index.html index.php"
 # 
 # nginx_vhosts:
