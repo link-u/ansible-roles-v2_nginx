@@ -22,7 +22,6 @@ nginx role について使い方を説明している.
 nginx_install_flag: True
 
 ## 基本設定
-nginx_version: "latest"
 nginx_log_directory: /var/log/nginx
 nginx_access_log: "{{ nginx_log_directory }}/access.log"
 nginx_error_log: "{{ nginx_log_directory }}/error.log"

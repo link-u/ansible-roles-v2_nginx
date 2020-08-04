@@ -12,16 +12,10 @@
   apt_repository:
     repo: deb https://pkg.link-u.co.jp/{{ ansible_distribution_release }} ./
     state: present
-  register: __nginx_add_apt_repo
-
-- name: Update apt repository
-  apt:
-    update_cache: yes
-  when: __nginx_add_apt_repo.changed | bool
 
 - name: Install packages
   apt:
-    pkg: "{{ 'nginx' if nginx_version == 'latest' else 'nginx=' ~ nginx_version }}"
+    name: "nginx"
     state: present
     update_cache: yes
 

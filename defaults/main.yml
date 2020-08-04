@@ -5,7 +5,6 @@
 ### インストール設定 ###############################################################################
 ## 基本設定
 nginx_install_flag: True                  # インストールフラグ
-nginx_version: "latest"
 nginx_log_directory: /var/log/nginx
 nginx_access_log: "{{ nginx_log_directory }}/access.log"
 nginx_error_log: "{{ nginx_log_directory }}/error.log"
