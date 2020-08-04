@@ -1,0 +1,15 @@
+{% set vhost_proxy = nginx_vhost_base_settings_for_proxy | combine({} if proxy == true else proxy) %}
+{% set keepalive = vhost_proxy.keepalive | default(500) %}
+
+upstream {{ vhost_proxy.upstream_name }} {
+    server {{ vhost_proxy.backend }};
+{% if keepalive %}
+    keepalive {{ keepalive }};
+{% endif %}
+}
+
+proxy_cache_path {{ nginx_proxy_cache_dir }}{{ vhost_proxy.cache_name }}
+                 levels=1:2
+                 keys_zone={{ vhost_proxy.cache_name }}:{{ vhost_proxy.keys_zone_cache_size }}
+                 max_size={{ vhost_proxy.cache_max_size }}
+                 inactive={{ vhost_proxy.cache_inactive }};

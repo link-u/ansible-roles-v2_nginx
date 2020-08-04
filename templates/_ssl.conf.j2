@@ -1,0 +1,34 @@
+{% set vhost_ssl = nginx_vhost_base_settings_for_ssl | combine({} if vhost.ssl == true else vhost.ssl) %}
+    # SSL Settings
+{% for listen_port in vhost_ssl.listen_list %}
+    listen       {{ listen_port }};
+{% endfor %}
+{% if vhost_ssl.certificate_list is defined %}
+{% for certificate in vhost_ssl.certificate_list %}
+    ssl_certificate      {{ vhost_ssl.dest_dir ~ certificate.file }};
+    ssl_certificate_key  {{ vhost_ssl.dest_dir ~ certificate.key_file }};
+{% endfor %}
+{% else %}
+    ssl_certificate      {{ vhost_ssl.dest_dir ~ vhost_ssl.certificate_file }};
+    ssl_certificate_key  {{ vhost_ssl.dest_dir ~ vhost_ssl.certificate_key_file }};
+{% endif %}
+    ssl_dhparam          {{ vhost_ssl.dest_dir ~ vhost_ssl.dhparam_file }};
+
+    ssl_buffer_size {{ vhost_ssl.buffer_size }};
+    ssl_session_timeout {{ vhost_ssl.session_timeout }};
+    ssl_prefer_server_ciphers on;
+    ssl_protocols {{ vhost_ssl.ssl_protocols }};
+    ssl_ciphers '{{ vhost_ssl.ciphers }}';
+{% if vhost_ssl.ecdh_curve %}
+    ssl_ecdh_curve {{ vhost_ssl.ecdh_curve }};
+{% endif %}
+    ssl_session_cache {{ vhost_ssl.session_cache }};
+    add_header Strict-Transport-Security 'max-age=31536000;';
+
+{% if vhost_ssl.ocsp_stapling | default(off) %}
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    ssl_trusted_certificate {{ vhost_ssl.ocsp_stapling.ssl_trusted_certificate | default(vhost_ssl.dest_dir ~ 'ca-certs.crt') }};
+    resolver 8.8.8.8 8.8.4.4 valid=300s;
+    resolver_timeout 5s;
+{% endif %}

@@ -1,0 +1,42 @@
+---
+# tasks/install.yml (nginx)
+# Prefix : nginx
+
+- name: Trust our package maintainers.
+  apt_key:
+    id: 4DE76DC836A27DBAE17FAC4B09C9B9C18F429AAE
+    url: https://pkg.link-u.co.jp/key.asc
+    state: present
+
+- name: Add our apt repository.
+  apt_repository:
+    repo: deb https://pkg.link-u.co.jp/{{ ansible_distribution_release }} ./
+    state: present
+
+- name: Install packages
+  apt:
+    name: "nginx"
+    state: present
+    update_cache: yes
+
+- name: Ensure that we no longer use init scripts.
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/etc/init.d/nginx"
+    - "/etc/init.d/nginx-debug"
+
+- name: enable nginx
+  systemd:
+    name: nginx.service
+    enabled: yes
+    masked: no
+  notify: Restart nginx
+
+- name: Install python module for htpasswd
+  apt:
+    pkg: python3-passlib
+    update_cache: yes
+    cache_valid_time: 86400
+    state: present

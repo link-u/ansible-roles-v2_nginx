@@ -1,0 +1,69 @@
+user {{ nginx_user_name }};
+worker_processes {{ nginx_worker_processes }};
+worker_rlimit_nofile {{ nginx_worker_rlimit_nofile }};
+
+error_log  {{ nginx_error_log }} {{ nginx_error_log_level }};
+pid        /var/run/nginx.pid;
+
+events {
+    accept_mutex_delay 100ms;
+    worker_connections 16384;
+    multi_accept on;
+    use epoll;
+}
+
+http {
+
+    sendfile     {{ nginx_sendfile }};
+    tcp_nopush   {{ nginx_tcp_nopush }};
+    tcp_nodelay  {{ nginx_tcp_nodelay }};
+    charset      {{ nginx_charset }};
+    keepalive_timeout  {{ nginx_keepalive_timeout }};
+    keepalive_requests {{ nginx_keepalive_requests }};
+
+    client_max_body_size {{ nginx_client_max_body_size }};
+
+    types_hash_max_size 2048;
+    server_tokens off;
+
+    include /etc/nginx/mime.types;
+    types {
+      image/avif avif;
+    }
+    default_type application/octet-stream;
+
+    access_log {{ nginx_access_log }};
+
+    gzip on;
+    gzip_min_length 1024;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css application/json application/x-javascript text/javascript application/javascript;
+
+    open_file_cache {{ nginx_open_file_cache }};
+
+{% if nginx_proxy_cache %}
+  {% for key, value in nginx_proxy_cache_fixed_settings | dictsort %}
+    {{ key ~ ' ' ~ value ~ ';' if value}}
+  {% endfor %}
+{% endif %}
+
+    {{ nginx_extra_http_parameters_str | indent(4) }}
+
+    include /etc/nginx/conf.d/*.conf;
+
+    # show connection status by stub_status
+    server {
+        listen 10058;
+        server_name nginx_status;
+
+        location /nginx_status {
+            stub_status on;
+            access_log off;
+            allow 127.0.0.1;
+            deny all;
+        }
+    }
+
+}
+
+{{ nginx_extra_configs }}

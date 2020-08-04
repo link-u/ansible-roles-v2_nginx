@@ -1,0 +1,6 @@
+    # IP Restriction
+{% for ip in (item.ip_restriction.white_list | default(nginx_default_ip_white_list)) %}
+    allow {{ ip }};
+{% endfor %}
+    deny all;
+
