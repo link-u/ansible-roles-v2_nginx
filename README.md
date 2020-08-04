@@ -92,6 +92,7 @@ nginx_extra_http_parameters_str: ""
 #                   'request_uri:$request_uri\t'
 #                   'host:$host\t'
 #                   'request_time:$request_time\t'
+#                   'upstream_response_time:$upstream_response_time\t'
 #                   'bytes_sent:$bytes_sent\t'
 #                   'referer:$http_referer\t'
 #                   'useragent:$http_user_agent\t'
