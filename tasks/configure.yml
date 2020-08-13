@@ -54,7 +54,7 @@
   tags: vhost
 
 - name: Check virtual_host config files
-  shell: ls -v /etc/nginx/conf.d | grep -E '.conf$'
+  command: bash -c "set -o pipefail && ls -v /etc/nginx/conf.d | grep -E '.conf$'"
   register: _nginx_conf_files
   changed_when: False
   check_mode: no
