@@ -17,11 +17,17 @@
   file:
     path: /etc/nginx/conf.d/
     state: directory
+    owner: "root"
+    group: "root"
+    mode: "0755"
 
 - name: Ensure extra directories are present
   file:
     path: "{{ item }}"
     state: directory
+    owner: "root"
+    group: "root"
+    mode: "0755"
   loop: "{{ nginx_extra_directories }}"
 
 - name: Set nginx config
@@ -86,6 +92,9 @@
   copy:
     src: "{{ nginx_ssl_src_base_dir }}/{{ item.ssl.src_dir_name | default(item.conf_file_name) }}/"
     dest: "{{ item.ssl.dest_dir | default('/etc/nginx/ssl/') }}"
+    owner: "root"
+    group: "root"
+    mode: "0755"
   when:
     - item.ssl | default(false)
     - item.ssl.put_ssl_keys | default(true)
