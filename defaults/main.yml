@@ -20,7 +20,7 @@ nginx_worker_processes: >-                # min(コア数の半分, 16)
 nginx_worker_rlimit_nofile: 1000000
 
 ## events ディレクティブ
-nginx_events_worker_connections: "16384"
+nginx_events_worker_connections: "65535"
 nginx_events_use: "epoll"
 
 ## http ディレクティブ
@@ -29,11 +29,11 @@ nginx_sendfile: "on"                      # String
 nginx_tcp_nopush: "on"                    # String
 nginx_tcp_nodelay: "on"                   # String
 nginx_keepalive_timeout: "300"
-nginx_keepalive_requests: "10000"
+nginx_keepalive_requests: "1000000"
 nginx_keepalive_disable: "none"
 nginx_msie_padding: "off"                 # String
 
-nginx_open_file_cache: "max=10000"
+nginx_open_file_cache: "max=1000000"
 nginx_client_max_body_size: "64m"
 nginx_proxy_cache: off
 nginx_ssl_src_base_dir: >-                # ansible実行側での証明書等の保存場所
