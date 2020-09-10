@@ -37,6 +37,18 @@
     dest: /etc/nginx/conf.d/{{ item.conf_file_name }}
     mode: "0644"
     backup: "{{ nginx_virtual_host_config_backup }}"
+  when: not ( item.use_external_conf | default(False) )
+  loop: "{{ nginx_vhosts }}"
+  notify: Reload nginx
+  tags: vhost
+
+- name: Set virtual_host config from external conf file
+  template:
+    src: "{{ item.external_conf_dir }}/{{ item.conf_file_name }}"
+    dest: /etc/nginx/conf.d/{{ item.conf_file_name }}
+    mode: "0644"
+    backup: "{{ nginx_virtual_host_config_backup }}"
+  when: item.use_external_conf | default(False)
   loop: "{{ nginx_vhosts }}"
   notify: Reload nginx
   tags: vhost
