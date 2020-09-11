@@ -35,10 +35,12 @@ http {
 
     access_log {{ nginx_access_log }};
 
+    # TODO:　どれをどっちで圧縮する方が良いのかはマシンの計算能力に依存するので、
+    #        選べるようになっているとベスト
     gzip on;
     gzip_min_length 1024;
     gzip_comp_level 6;
-    gzip_types text/plain text/css application/json application/x-javascript text/javascript application/javascript;
+    gzip_types text/plain text/css application/json application/x-javascript text/javascript application/javascript application/protobuf application/x-protobuf;
 
     brotli on;
     brotli_types text/css text/javascript application/javascript;
