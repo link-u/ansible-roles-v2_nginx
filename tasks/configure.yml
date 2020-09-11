@@ -44,7 +44,7 @@
 
 - name: Set virtual_host config from external conf file
   template:
-    src: "{{ item.external_conf_dir }}/{{ item.conf_file_name }}"
+    src: "{{ nginx_external_src_conf_dir }}/{{ item.conf_file_name }}"
     dest: /etc/nginx/conf.d/{{ item.conf_file_name }}
     mode: "0644"
     backup: "{{ nginx_virtual_host_config_backup }}"
