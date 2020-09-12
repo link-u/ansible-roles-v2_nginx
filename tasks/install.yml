@@ -13,6 +13,16 @@
     repo: deb https://pkg.link-u.co.jp/{{ ansible_distribution_release }} ./
     state: present
 
+- name: Remove official apt repository.
+  apt_repository:
+    repo: deb http://nginx.org/packages/mainline/ubuntu/ {{ ansible_distribution_release }} nginx
+    state: absent
+
+- name: Remove official apt source repository.
+  apt_repository:
+    repo: deb-src http://nginx.org/packages/mainline/ubuntu/ {{ ansible_distribution_release }} nginx
+    state: absent
+
 - name: Install packages
   apt:
     name: "nginx"
