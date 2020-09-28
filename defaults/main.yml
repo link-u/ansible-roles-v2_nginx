@@ -50,6 +50,7 @@ nginx_virtual_host_config_backup: no      # on or off : conf ファイルを変�
 nginx_default_ip_white_list:              # nginx にアクセスできるデフォルト IP アドレスホワイトリスト
   - "127.0.0.1"
 ## Virtual host を設定する変数
-nginx_vhosts: []                          # 初期値は空の配列
+nginx_vhosts:
+  - conf_file_name: "localhost.conf"
 nginx_external_src_conf_dir: >-           # 予め用意した vhost の conf ファイルを管理する src ディレクトリ
   {{ playbook_dir }}/../files/nginx/conf.d

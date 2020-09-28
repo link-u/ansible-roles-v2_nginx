@@ -2,6 +2,12 @@
 # tasks/install.yml (nginx)
 # Prefix : nginx
 
+- name: Pre-install packages
+  apt:
+    name: "gpg"
+    state: present
+    update_cache: yes
+
 - name: Trust our package maintainers.
   apt_key:
     id: 4DE76DC836A27DBAE17FAC4B09C9B9C18F429AAE
@@ -38,5 +44,4 @@
   apt:
     pkg: python3-passlib
     update_cache: yes
-    cache_valid_time: 86400
     state: present
