@@ -83,6 +83,7 @@
     path: "{{ item[0].auth_basic_user.htpasswd_path | default('/etc/nginx/.htpasswd') }}"
     name: "{{ item[1].name }}"
     password: "{{ item[1].password }}"
+    mode: "0644"
   when:
     - item[0].auth_basic_user
   loop: "{{ nginx_vhosts | subelements('auth_basic_user.accounts', skip_missing=True) }}"
