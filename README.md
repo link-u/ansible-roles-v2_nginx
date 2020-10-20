@@ -1,5 +1,7 @@
 # Nginx
 
+![ansible ci](https://github.com/link-u/ansible-roles-v2_nginx/workflows/ansible%20ci/badge.svg)
+
 ## 概要
 nginx role について使い方を説明している.
 
