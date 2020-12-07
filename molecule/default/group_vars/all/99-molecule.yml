@@ -1,0 +1,11 @@
+nginx_vhosts:
+  - conf_file_name: "localhost.conf"
+  - conf_file_name: "dummy.example.com.conf"
+    use_external_conf: yes
+    ssl: 
+      src_dir_name: null
+      dest_dir: "/etc/nginx/ssl/_.dummy.example.com/"
+      certificate_file: "_.dummy.example.com_fullchain-cert-key.pem"
+      certificate_key_file: "_.dummy.example.com_private-key.pem"
+
+nginx_external_src_conf_dir: "{{ lookup('env', 'MOLECULE_SCENARIO_DIRECTORY') }}/conf.d"
