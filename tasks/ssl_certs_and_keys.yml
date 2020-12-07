@@ -1,0 +1,39 @@
+---
+## tasks/ssl_certs_and_keys.yml (nginx)
+# Prefix : nginx
+
+## 自分で用意した SSL 証明書をデプロイする場合のタスク
+#  * __item_vhost.ssl.src_dir_name が null でないときこちらのタスクを実行
+- name: Deploy SSL certs and keys
+  copy:
+    src: "{{ nginx_ssl_src_base_dir }}/{{ __item_vhost.ssl.src_dir_name | default(__item_vhost.conf_file_name) }}/"
+    dest: "{{ __item_vhost.ssl.dest_dir | default('/etc/nginx/ssl/') }}"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  when:
+    - __item_vhost.ssl.src_dir_name != None
+  notify: Reload nginx
+
+## サーバに 秘密鍵と SSL 証明書があることを確認する.
+- name: "Check if SSL certs and keys exist on server"
+  stat:
+    path: "{{ __item_vhost.ssl.dest_dir }}/{{ item }}"
+  loop:
+    - "{{ __item_vhost.ssl.certificate_file }}"
+    - "{{ __item_vhost.ssl.certificate_key_file }}"
+  register: __nginx_check_certs_and_keys_on_server
+
+## SSL 証明書を用意していない場合, デフォルトの自己証明書を作成するタスク.
+#  * __item_vhost.ssl.src_dir_name が null のときこちらのタスクを実行
+#  * ただし, デプロイ先に秘密鍵と証明書が存在する場合は実行しない.
+- name: Create default SSL certs and keys
+  include_tasks: "create_default_ssl_certs_and_keys.yml"
+  when:
+    - __item_vhost.ssl.src_dir_name == None
+    - (__nginx_non_existing_file | length) > 0
+  vars:
+    __nginx_non_existing_file: >-
+      {{ __nginx_check_certs_and_keys_on_server.results |
+        selectattr('stat.exists', '==', False) |
+        map(attribute='item') | list }}

@@ -21,3 +21,12 @@
     msg: "{{ __nginx_check_deleted_vars.stdout_lines }}"
   failed_when: yes
   ignore_errors: yes
+
+- name: "Print warning for nginx (Used self-signed certificate)"
+  debug:
+    msg:
+      - "[WARNING]:"
+      - "  デフォルトの自己証明書がデプロイされました."
+      - "  意図通りであるかどうか確認してください."
+  failed_when: yes
+  ignore_errors: yes

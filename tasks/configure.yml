@@ -89,18 +89,22 @@
   loop: "{{ nginx_vhosts | subelements('auth_basic_user.accounts', skip_missing=True) }}"
   notify: Reload nginx
 
-- name: Put ssl keys
-  copy:
-    src: "{{ nginx_ssl_src_base_dir }}/{{ item.ssl.src_dir_name | default(item.conf_file_name) }}/"
-    dest: "{{ item.ssl.dest_dir | default('/etc/nginx/ssl/') }}"
+- name: Create directory for ssl-certs
+  file:
+    path: "/etc/nginx/ssl"
+    state: "directory"
     owner: "root"
     group: "root"
     mode: "0755"
+
+- name: Put ssl keys
+  include_tasks: "ssl_certs_and_keys.yml"
   when:
-    - item.ssl | default(false)
-    - item.ssl.put_ssl_keys | default(true)
+    - __item_vhost.ssl | default(false)
+    - __item_vhost.ssl.put_ssl_keys | default(true)
   loop: "{{ nginx_vhosts }}"
-  notify: Reload nginx
+  loop_control:
+    loop_var: "__item_vhost"
   tags: put_ssl
 
 - name: Check nginx conf file syntax

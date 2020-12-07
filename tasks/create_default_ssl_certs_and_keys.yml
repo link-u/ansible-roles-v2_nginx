@@ -1,0 +1,99 @@
+---
+## tasks/create_default_ssl_certs.yml (nginx)
+# Prefix : nginx
+# NOTE(@y-hashida):
+#   動作確認用なので本番環境では使用しないこと!!!!
+#   デフォルトパスワードのようなもの
+
+- name: Create directory for SSL
+  file:
+    path: "{{ __item_vhost.ssl.dest_dir }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+## 初期 SSL 証明書と初期秘密鍵のデプロイ
+#  * 証明書と鍵を自前で用意していない場合コチラを使用
+#  * CI などの動作確認や, pxc 8.0 のインストール直後などで使用する.
+- name: Create default ssl certs and keys
+  copy:
+    content: "{{ item.content }}"
+    dest: "{{ __item_vhost.ssl.dest_dir }}/{{ item.pem_file }}"
+    owner: "root"
+    group: "root"
+    mode: "{{ item.mode }}"
+  no_log: yes
+  notify:
+    - "Reload nginx"
+    - "Print warning for nginx (Used self-signed certificate)"
+  loop:
+    - pem_file: "{{ __item_vhost.ssl.certificate_file }}"
+      mode: "0644"
+      content: |
+        -----BEGIN CERTIFICATE-----
+        MIICwjCCAaoCAQEwDQYJKoZIhvcNAQELBQAwMDEuMCwGA1UEAwwlYW5zaWJsZS1y
+        b2xlcy12Ml9uZ2lueF9DQV9DZXJ0aWZpY2F0ZTAeFw0yMDEyMDcxMTMzNDZaFw0z
+        MDEwMTYxMTMzNDZaMB4xHDAaBgNVBAMMEyouZHVtbXkuZXhhbXBsZS5jb20wggEi
+        MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDHejRqgf3MLPLPIA4UpBkctSKE
+        K2076IcXZZT6vNMu0A5ltDDKrR+aSNYCpRmJdV4PLUhv1wY9Tlkfvd62YFQwTx7x
+        xLneEvxRGE55uOyVgQTfA7hiXkRY0DpS1ebAZ8DJfyHDCtgYktivxzaZnErn7ari
+        GcXqt7EExOxCHQjx5Qw1Ukcd6Cv9x36x/7vsnlDOqqf/frA8nH9ZE3DKJTz45xrS
+        XdG6Kls5p3sG3712j/E4EhfLtSAff52v1Cw9J3zW+Eh2+IjLsNWb7kH6eLolVO16
+        oYVLelQhplZMT9dIlMJT80aFFEhi5vxlrTiE6ErAOxHoJp8HjrTIaku5kQvLAgMB
+        AAEwDQYJKoZIhvcNAQELBQADggEBAAbVlHpfz23TFgujQXcy48pg+uEtGqjSQumD
+        zuX3rJNNleVjjDHaBsfha5UpdydbDtlyK77DuxMggGRVtuRQvJf7IY1qUEsrXe1r
+        O4bmYzlnZrJqytqxvGm7NfbTFXZWBkn2YEFiqIGeGLFD+r0Gn0y37OY/tkDIqhbk
+        9PsC7hOmGSlNoEcYGxiy6VFCxmS94qan+5KQrjwMKLnjHZmexS1PJRpFRMU5Dnu/
+        l00tycXjpuMDVShZFvE6vu6DhRz6tAj2uyFQfpPBJFpcBOcNMBbO0LcDpiUcBWow
+        BxU216w1LfCjWvlNcUOSRMpA98d74vLaypGPrpMqT1fwkT3Jblc=
+        -----END CERTIFICATE-----
+        -----BEGIN CERTIFICATE-----
+        MIIC5zCCAc8CFAUjYxPGOuKhvehrHKhtcynK44qZMA0GCSqGSIb3DQEBCwUAMDAx
+        LjAsBgNVBAMMJWFuc2libGUtcm9sZXMtdjJfbmdpbnhfQ0FfQ2VydGlmaWNhdGUw
+        HhcNMjAxMjA3MTEzMzQ2WhcNMzAxMDE2MTEzMzQ2WjAwMS4wLAYDVQQDDCVhbnNp
+        YmxlLXJvbGVzLXYyX25naW54X0NBX0NlcnRpZmljYXRlMIIBIjANBgkqhkiG9w0B
+        AQEFAAOCAQ8AMIIBCgKCAQEAtCO7S2irp5QmNVPbANbm8xQF4czidE9ToRqiIHyE
+        BnOAf75JdKholnhG6KmgkZznw1E0AzbH9KAUC5bT6wUpedcEXR/aB7exgBa/xiYi
+        0YcOfqEDwCuZJoGHgIutRm+NZ0HHok6cDk9waOBLt8BBNGDT9APbDg6yjgtXcK+E
+        kxptoIByQX4PucErm4V3CaGXBs0xA00Icbtuf4errLYlbBuYaJ0biUkgJKC6QvWp
+        aSdnJAHW0if3934y1zochkaMwulHzzDN/L9dMB13Rie6VGDdAGOTjFwn38Pmk3p+
+        iEJby5T59B2XS1uKLYWxKB3ODRM+54zr6xLwnGb3b3i0NwIDAQABMA0GCSqGSIb3
+        DQEBCwUAA4IBAQBKJaM1oP+blYf8vy+tgCmWJj6DwxWRlVNlEjdH3PyLhxQoMg/l
+        foZPfEE44Xc4gl/goYnvtmwqsjI7xVV1Xngf+mQ0VKD9CEOlFfobrTinsnzjxNDU
+        QtXprNeFBZxe/NBoTEt8rLoBXJpAqizJMPHF24Ljt+Gy2wMRYfrqXvlcV5V9/dgC
+        +dy9ADtbUMCH+jjPtPQkNLnn0TJqS0jJsEgWWfZ3c4RSEVD4XYTf9GZ+Lcqj00m+
+        VxtOWtSN2izNralpntuhGhl/8Oj0app5IGE7hjxvZiN8sHCAjbCGnNrg4uaZqpFc
+        4vKCxEDVWFICbzUk2Uh8eaAjDYZGR4yQSIVe
+        -----END CERTIFICATE-----
+
+    - pem_file: "{{ __item_vhost.ssl.certificate_key_file }}"
+      mode: "0600"
+      content: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEpAIBAAKCAQEAx3o0aoH9zCzyzyAOFKQZHLUihCttO+iHF2WU+rzTLtAOZbQw
+        yq0fmkjWAqUZiXVeDy1Ib9cGPU5ZH73etmBUME8e8cS53hL8URhOebjslYEE3wO4
+        Yl5EWNA6UtXmwGfAyX8hwwrYGJLYr8c2mZxK5+2q4hnF6rexBMTsQh0I8eUMNVJH
+        Hegr/cd+sf+77J5Qzqqn/36wPJx/WRNwyiU8+Oca0l3RuipbOad7Bt+9do/xOBIX
+        y7UgH3+dr9QsPSd81vhIdviIy7DVm+5B+ni6JVTteqGFS3pUIaZWTE/XSJTCU/NG
+        hRRIYub8Za04hOhKwDsR6CafB460yGpLuZELywIDAQABAoIBAQC1C2PxWuPXYOBL
+        PsOo1jr4hCm8nZF5sxSRFqA9Zg2hyjGW+xDhknlBVWPvaJsh2AUzbxz0bMr771US
+        awhsrEccxWLHeY5cUQzyKUZoUX9gPYYHRuAdX4NWvD6DGiJhdIlUF++zju8MdpL2
+        Dq+ugVy23U2gAlZQLsIaGwR3CNUqfOSPZdM/SVCTjf8dOA06kyyEJhuZzVYWx5i6
+        GhA15SXrBebim3MxNDB0lsfw9quMSPBCdXRl1L2yjIAbTk/6bwN3qGmELhZex2Ml
+        lweDUjCN+lDE4f4LlOdHbhlP45iqFMoyTKBJCYlf5OyMCSbaY31OufrqdP+ny6CY
+        X+CduZTBAoGBAPwKmQn3mSoPv092d26ebuMOyF6WaJEF6CHZW0BR7L8SIZ/dWn9i
+        BK1MihgsEnd82jpAnuAKdcioEzqu+EABItKWcjSm+OE1VULdS3Synjg1oqelT8HB
+        IoN/vh+3VsdImF2qSSS4W6RHrPk1H5yKpTQGZCeNAHg8abWRgGDp1BPhAoGBAMqc
+        QjmK4S+Fg4J+qfPDtKjiONbUCdocHukIUUKlJ/YarVpiDPwZnT9UeeMyrRhgN8jh
+        y0n9P1f8a+f7TQp1Hje7KevwS/pAuWGZPRd+28222vrpA9nI5n53IQjK9zWeDH9I
+        Lp7hhdK7n3ZEc4y3y6gwJMzfW0Ckw/WqBhCTWFUrAoGBAOG4iAiiIxzFT5tVyG5c
+        G4jj41S6tVk0BgnShGOdOz5/eXeXoQW1/eRKSN6PEdbLDRHgb6jMFWIoDFig/Jkt
+        q0cYD53R79CZmAsy7vHLSeGjP1GOvlgSpNtJ2zbCVkhRXot8BteI+CGvQ11IU1A5
+        5uwp0SaOo94KlM1USroAj7thAoGAbaabgKDUte8/+QOr3qzvvOaRdFJU8qF9aQiD
+        UdooAlz1rJCcDmOeYoPJY1gtrZ+FEUaByo0wFuIZU/cA/sPbkrXMPlBSDiGxMkzI
+        b0rMkkx/voMU/mxnsdGvIx8VIwNiKBBcisfqsN2xs0PgdSuTIHbNs8K9lAKXuwBF
+        P/s+NvkCgYB+X2wfTB9Ixt4qlBzxUI1sfBKgxH9v+SJOiI3kWfz16SPaH2pmPW4B
+        uNH9uocDrMzzIt/J/+ykHvCSex01U62x4NLJDLu42xELvJ2zfRFjxWaMsNYt4Miv
+        rz88OcpFvHXHLNZTNnEX1m41ChKVi3Eod/+MQBvXw7a2BsKxM1tv6Q==
+        -----END RSA PRIVATE KEY-----
