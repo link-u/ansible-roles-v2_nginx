@@ -1,0 +1,91 @@
+---
+# tasks/create_dummy_ssl_keys.yml (nginx)
+# Prefix : nginx
+
+### ssl.certificate_list が定義されていない場合 ####################################
+- name: "Case: vhost.certificate_list is not defined"
+  block:
+    ## 秘密鍵と証明書ファイルの存在確認
+    - name: "Check existing SSL certificate"
+      stat:
+        path: "{{ vhost.ssl.dest_dir }}/{{ item }}"
+      loop:
+        - "{{ vhost.ssl.certificate_file }}"
+        - "{{ vhost.ssl.certificate_key_file }}"
+      register: "_nginx_check_existing_ssl_cert"
+
+    ## 秘密鍵と証明書のどちらかもしくは両方が欠けている場合, ダミーの秘密鍵と証明書を作成する
+    - name: "Create dummy ssl keys"
+      command:
+        cmd: >
+          bash -c "
+            mkdir -p \
+                {{ (vhost.ssl.dest_dir ~ '/' ~ vhost.ssl.certificate_file) | dirname | quote }} \
+                {{ (vhost.ssl.dest_dir ~ '/' ~ vhost.ssl.certificate_key_file) | dirname | quote }} &&
+            openssl genrsa -out '{{ vhost.ssl.dest_dir }}/{{ vhost.ssl.certificate_key_file }}' 2048 &&
+            openssl req -new -sha256 \
+                -key '{{ vhost.ssl.dest_dir }}/{{ vhost.ssl.certificate_key_file }}' \
+                -subj '/CN=dummy.example.com' -out /tmp/dummy.example.com_req.csr &&
+            openssl x509 -req \
+                -in /tmp/dummy.example.com_req.csr \
+                -signkey '{{ vhost.ssl.dest_dir }}/{{ vhost.ssl.certificate_key_file }}' \
+                -out '{{ vhost.ssl.dest_dir }}/{{ vhost.ssl.certificate_file }}' \
+                -days 3650 &&
+            rm -f /tmp/dummy.example.com_req.csr
+          "
+      when:
+        - (_num_of_missing_ssl_cert | int) != 0
+      vars:
+        _num_of_missing_ssl_cert: >-
+          {{ _nginx_check_existing_ssl_cert.results |
+            selectattr('stat.exists', 'eq', false) | list | length }}
+  when:
+    - vhost.ssl.certificate_list is undefined
+
+
+### ssl.certificate_list が定義されている場合 ######################################
+- name: "Case: vhost.certificate_list is defined"
+  block:
+    ## 秘密鍵と証明書ファイルの存在確認
+    - name: "Check existing SSL certificate"
+      stat:
+        path: "{{ vhost.ssl.dest_dir }}/{{ item }}"
+      loop: "{{ _nginx_key_and_crt_file_list }}"
+      vars:
+        _nginx_key_and_crt_file_list: |
+          {% set __result_list = [] %}
+          {% for item in vhost.ssl.certificate_list %}
+          {%     set _ = __result_list.append(item.file) %}
+          {%     set _ = __result_list.append(item.key_file) %}
+          {% endfor %}
+          {{ __result_list }}
+      register: "_nginx_check_existing_ssl_cert"
+
+    ## 秘密鍵と証明書のどちらかもしくは両方が欠けている場合, ダミーの秘密鍵と証明書を作成する
+    - name: "Create dummy ssl keys"
+      command:
+        cmd: >
+          bash -c "
+            mkdir -p \
+                {{ (vhost.ssl.dest_dir ~ '/' ~ item.file) | dirname | quote }} \
+                {{ (vhost.ssl.dest_dir ~ '/' ~ item.key_file) | dirname | quote }} &&
+            openssl genrsa -out '{{ vhost.ssl.dest_dir }}/{{ item.key_file }}' 2048 &&
+            openssl req -new -sha256 \
+                -key '{{ vhost.ssl.dest_dir }}/{{ item.key_file }}' \
+                -subj '/CN=dummy.example.com' -out /tmp/dummy.example.com_req.csr &&
+            openssl x509 -req \
+                -in /tmp/dummy.example.com_req.csr \
+                -signkey '{{ vhost.ssl.dest_dir }}/{{ item.key_file }}' \
+                -out '{{ vhost.ssl.dest_dir }}/{{ item.file }}' \
+                -days 3650 &&
+            rm -f /tmp/dummy.example.com_req.csr
+          "
+      loop: "{{ vhost.ssl.certificate_list }}"
+      when:
+        - (_num_of_missing_ssl_cert | int) != 0
+      vars:
+        _num_of_missing_ssl_cert: >-
+          {{ _nginx_check_existing_ssl_cert.results |
+            selectattr('stat.exists', 'eq', false) | list | length }}
+  when:
+    - vhost.ssl.certificate_list is defined

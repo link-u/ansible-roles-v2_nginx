@@ -103,6 +103,15 @@
   notify: Reload nginx
   tags: put_ssl
 
+- name: "Create dummy ssl keys when there is no ssl certificate."
+  include_tasks: "create_dummy_ssl_keys.yml"
+  loop: "{{ nginx_vhosts }}"
+  loop_control:
+    loop_var: vhost
+  when:
+    - vhost.ssl | default(false)
+    - not (vhost.ssl.put_ssl_keys | default(true))
+
 - name: Check nginx conf file syntax
   command: "nginx -t"
   register: _check_nginx_syntax
