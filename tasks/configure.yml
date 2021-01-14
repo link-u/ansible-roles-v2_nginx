@@ -120,10 +120,11 @@
     owner: "root"
     group: "root"
     mode: "0644"
-    force: no     ## すでに存在する場合は再生成しない.
+    force: no
   loop: "{{ nginx_vhosts }}"
   when:
     - item.ssl | default(false)
+    - not (vhost.ssl.put_ssl_keys | default(true))
   notify: Reload nginx
 
 - name: Check nginx conf file syntax
