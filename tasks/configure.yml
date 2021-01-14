@@ -89,19 +89,43 @@
   loop: "{{ nginx_vhosts | subelements('auth_basic_user.accounts', skip_missing=True) }}"
   notify: Reload nginx
 
-- name: Put ssl keys
+- name: Put ssl keys from localhost (your pc)
   copy:
     src: "{{ nginx_ssl_src_base_dir }}/{{ item.ssl.src_dir_name | default(item.conf_file_name) }}/"
     dest: "{{ item.ssl.dest_dir | default('/etc/nginx/ssl/') }}"
     owner: "root"
     group: "root"
-    mode: "0755"
+    mode: "preserve"
   when:
     - item.ssl | default(false)
     - item.ssl.put_ssl_keys | default(true)
   loop: "{{ nginx_vhosts }}"
   notify: Reload nginx
   tags: put_ssl
+
+- name: "Create dummy ssl keys when there is no ssl certificate."
+  include_tasks: "create_dummy_ssl_keys.yml"
+  loop: "{{ nginx_vhosts }}"
+  loop_control:
+    loop_var: vhost
+  when:
+    - vhost.ssl | default(false)
+    - not (vhost.ssl.put_ssl_keys | default(true))
+
+## DH パラメータの生成
+- name: "Create DH-parameter"
+  openssl_dhparam:
+    path: "{{ item.ssl.dest_dir }}/{{ item.ssl.dhparam_file }}"
+    size: "2048"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    force: no
+  loop: "{{ nginx_vhosts }}"
+  when:
+    - item.ssl | default(false)
+    - not (vhost.ssl.put_ssl_keys | default(true))
+  notify: Reload nginx
 
 - name: Check nginx conf file syntax
   command: "nginx -t"
