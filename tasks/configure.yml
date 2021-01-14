@@ -124,7 +124,7 @@
   loop: "{{ nginx_vhosts }}"
   when:
     - item.ssl | default(false)
-    - not (vhost.ssl.put_ssl_keys | default(true))
+    - not (item.ssl.put_ssl_keys | default(true))
   notify: Reload nginx
 
 - name: Check nginx conf file syntax
