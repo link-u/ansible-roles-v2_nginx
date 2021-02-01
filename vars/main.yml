@@ -75,3 +75,5 @@ nginx_vhost_base_settings_for_ssl:
   put_ssl_keys: yes
   ocsp_stapling: off
   http_redirect: on
+  stt:
+    max_age: 31536000

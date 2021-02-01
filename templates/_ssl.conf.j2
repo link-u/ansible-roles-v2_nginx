@@ -23,7 +23,9 @@
     ssl_ecdh_curve {{ vhost_ssl.ecdh_curve }};
 {% endif %}
     ssl_session_cache {{ vhost_ssl.session_cache }};
-    add_header Strict-Transport-Security 'max-age=31536000;';
+{% if vhost_ssl.stt %}
+    add_header Strict-Transport-Security 'max-age={{ vhost_ssl.stt.max_age }}; {{ vhost_ssl.stt.option | default('') }}';
+{% endif %}
 
 {% if vhost_ssl.ocsp_stapling | default(off) %}
     ssl_stapling on;
