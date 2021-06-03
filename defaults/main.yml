@@ -18,6 +18,7 @@ nginx_user_name: "www-data"
 nginx_worker_processes: >-                # min(コア数の半分, 16)
   {{ [([ansible_processor_cores * ansible_processor_count / 2, 1] | max) , 16] | min | round | int }}
 nginx_worker_rlimit_nofile: 1000000
+nginx_enable_vts: yes
 
 ## events ディレクティブ
 nginx_events_worker_connections: "65535"
