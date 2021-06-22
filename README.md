@@ -35,7 +35,7 @@ nginx_error_log_level: warn
 ### conf ファイル 設定 #############################################################################
 nginx_user_name: "www-data"
 nginx_worker_processes: >-                # min(コア数の半分, 16)
-  {{ [([ansible_processor_cores * ansible_processor_count / 2, 1] | max) , 16] | min | round | int }}
+  {{ [([((ansible_virtualization_role == 'host') | ternary(ansible_processor_count * ansible_processor_cores, ansible_processor_nproc)) / 2, 1] | max) , 16] | min | round | int }}
 nginx_worker_rlimit_nofile: 1000000
 nginx_charset: "UTF-8"
 nginx_sendfile: "on"                      # String
