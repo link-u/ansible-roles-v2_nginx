@@ -42,7 +42,7 @@
 
   | 種類 | デフォルト値 | 変更必須 |
   | :--- | :--------- | :--- |
-  | `string` or `number` | <code>"{{ [([ansible_processor_cores * ansible_processor_count / 2, 1] &#124; max) , 16] &#124; min &#124; round &#124; int }}"</code> | no |
+  | `string` or `number` | <code>"{{ [([((ansible_virtualization_role == 'host') | ternary(ansible_processor_count * ansible_processor_cores, ansible_processor_nproc)) / 2, 1] &#124; max) , 16] &#124; min &#124; round &#124; int }}"</code> | no |
 
 - nginx のワーカプロセス数を4にする例
   ```yaml
